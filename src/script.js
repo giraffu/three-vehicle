@@ -3,13 +3,12 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { Reflector } from 'three/examples/jsm/objects/Reflector.js';
 import * as CANNON from 'cannon-es'
-import cannonDebugger from 'cannon-es-debugger'
 import Guify from 'guify'
 import Stats from 'stats.js';
 import {Car} from './world/car';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { ConvexGeometry } from 'three/examples/jsm/geometries/ConvexGeometry.js';
-import cu from 'cannon-utils';
+import cu from "cannon-utils";
+
 const loader = document.querySelector('.loader');
 const gltfLoader = new GLTFLoader();
 var stats = new Stats();
@@ -122,84 +121,33 @@ window.addEventListener('resize', () =>
 /**
  * Floor
  */
-const floorGeo = new THREE.PlaneBufferGeometry(100, 100);
-const floorMirror = new Reflector( floorGeo, {
-    clipBias: 0.003,
-    textureWidth: window.innerWidth * window.devicePixelRatio,
-    textureHeight: window.innerHeight * window.devicePixelRatio,
-    color: 0xffffff
-});
-const floorMesh = new THREE.Mesh(
-    floorGeo,
-    new THREE.MeshStandardMaterial({
-        color: 0xffffff,
-        roughness: 0.5,
-        metalness: 0,
-        emissive: 0xffffff,
-        emissiveIntensity: -0.36,
-        transparent: true,
-        opacity: 0.7
-    })
-)
-floorMirror.rotation.x = -Math.PI * 0.5;
-floorMesh.rotation.x = -Math.PI * 0.5;
-floorMesh.position.y = 0.001;
-//scene.add(floorMirror, floorMesh)
 
-const floorS = new CANNON.Plane();
-const floorB = new CANNON.Body();
-floorB.mass = 0;
-
-floorB.addShape(floorS);
-world.addBody(floorB);
-
-floorB.quaternion.setFromAxisAngle(
-    new CANNON.Vec3(-1, 0, 0),
-    Math.PI * 0.5
-);
-//load_Model,点太多了，前端加载会卡死，后续考虑如何优化
 //
-gltfLoader.load(`./models/road3.glb`, gltf => {
-
+gltfLoader.load(`./models/road/scene.glb`, gltf => {
     gltf.scene.scale.set(20, 20, 20);
-    const position = [];
-    // gltf.scene.traverse(function(child) {
-    //     if (child.isMesh) {
-    //         position.push(...child.geometry.attributes.position.array);
-    //     }
-    //     const points = []
-    //     for (let i = 0; i < position.length; i += 0) {
-    //         points.push(
-    //             new THREE.Vector3(position[i], position[i + 1], position[i + 2])
-    //         )
-    //     }
-    //     const cannon_shape = new CANNON.Trimesh(points,position)
-    //     const body = new CANNON.Body({
-    //         shape: cannon_shape,
-    //         mass: 1,
-    //     })
-    //     world.addBody(body)
-    // })
-
     scene.add(gltf.scene)
 });
 
-function createConvexHull(position) {
+gltfLoader.load(`./models/road/road_cons.glb`, gltf => {
 
-    const points = []
-    for (let i = 0; i < position.length; i += 3) {
-        points.push(
-            new THREE.Vector3(position[i], position[i + 1], position[i + 2])
-        )
-    }
-    let indices = item.geometry.index.array;
-    const cannon_shape = new CANNON.Trimesh(points,)
-    const body = new CANNON.Body({
-        shape: cannon_shape,
-        mass: 1,
-    })
+    gltf.scene.children[0].scale.set(19.99, 19.99, 19.99);
+    const body = new CANNON.Body();
+    const cannon_shape = cu.CreateTriMesh(gltf.scene.children[0], { x: 5, y: 5, z: 5 });
+    body.mass = 0;
+    body.addShape(cannon_shape);
     world.addBody(body)
-}
+    scene.add(gltf.scene)
+});
+gltfLoader.load(`./models/road/guard_cons.glb`, gltf => {
+
+    gltf.scene.children[0].scale.set(20, 20, 20);
+    const body = new CANNON.Body();
+    const cannon_shape = cu.CreateTriMesh(gltf.scene.children[0], { x: 5, y: 5, z: 5 });
+    body.mass = 0;
+    body.addShape(cannon_shape);
+    world.addBody(body)
+    //scene.add(gltf.scene)
+});
 /**
  * Camera
  */
